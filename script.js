@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let startTime = 0;
     let stepStartTime = 0;
     let timerInterval = null;
-    const timerEl = document.getElementById('game-timer');
+    const timerEl = document.getElementById('timer-display');
 
     // Initialize
     initGame();
@@ -58,9 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepStartTime = Date.now();
         timerInterval = setInterval(() => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            timerEl.textContent = `${minutes}:${seconds}`;
+            timerEl.textContent = formatTime(elapsed);
         }, 1000);
     }
 

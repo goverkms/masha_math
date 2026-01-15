@@ -264,7 +264,7 @@ path.game-arc.completed {
     }
 }
 
-.game-timer {
+.timer-display {
     position: absolute;
     top: 20px;
     font-size: 2.5rem;
@@ -277,6 +277,8 @@ path.game-arc.completed {
     border: 1px solid var(--glass-border);
     z-index: 10;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .step-time-label {

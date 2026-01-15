@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyList.innerHTML = '';
 
         if (history.length === 0) {
-            historyList.innerHTML = '<tr><td colspan="4" style="text-align:center">No history yet</td></tr>';
+            historyList.innerHTML = '<tr><td colspan="5" style="text-align:center">No history yet</td></tr>';
         } else {
             history.forEach(item => {
                 const tr = document.createElement('tr');
@@ -718,10 +718,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = new Date(item.timestamp);
                 const dateStr = date.toLocaleString();
 
+                // Safe access for steps
+                const s1 = item.steps && item.steps[0] ? item.steps[0] : { time: '-', wrongCount: 0 };
+                const s2 = item.steps && item.steps[1] ? item.steps[1] : { time: '-', wrongCount: 0 };
+
+                // Format: "00:05 (1❌)"
+                const s1Text = `${s1.time} <span style="font-size:0.8em; opacity:0.7">(${s1.wrongCount}❌)</span>`;
+                const s2Text = `${s2.time} <span style="font-size:0.8em; opacity:0.7">(${s2.wrongCount}❌)</span>`;
+
                 tr.innerHTML = `
                     <td>${dateStr}</td>
+                    <td>${s1Text}</td>
+                    <td>${s2Text}</td>
                     <td>${item.equation}</td>
-                    <td>${item.totalTime}</td>
                     <td>${item.score}⭐</td>
                 `;
                 historyList.appendChild(tr);

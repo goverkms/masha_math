@@ -66,9 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getStepDuration() {
         const now = Date.now();
-        const duration = (now - stepStartTime) / 1000; // in seconds
+        const durationSeconds = Math.floor((now - stepStartTime) / 1000);
         stepStartTime = now; // reset for next step
-        return duration.toFixed(1) + 's';
+        return formatTime(durationSeconds);
+    }
+
+    function formatTime(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
     }
 
     async function loadConfig() {

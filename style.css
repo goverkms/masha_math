@@ -194,6 +194,14 @@ html {
     transform: scale(0.95);
 }
 
+.submit-btn.locked {
+    background: #555;
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+}
+
 @keyframes pulse {
     0% {
         transform: scale(1);

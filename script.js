@@ -494,7 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateRollerVisuals();
     }
 
+    const penaltyDelay = 10000; // 10 seconds penalty for wrong answer
+
     submitBtn.addEventListener('click', () => {
+        if (submitBtn.disabled) return;
+
         const step = steps[currentStep];
         // The value we calculated visually is 'index + 1' from top 0, but since we added padding...
         // Padding top is index 0. Real 0 is index 1.
@@ -517,21 +521,34 @@ document.addEventListener('DOMContentLoaded', () => {
             step.duration = duration; // Store for history
             showSolvedResult(currentStep, inputVal, duration);
 
-            // Hide input during delay
+            // Hide input immediately
             inputOverlay.classList.add('hidden');
 
             // Move to next
             setTimeout(() => {
                 activateStep(currentStep + 1);
-            }, nextStepDelay);
+            }, 500);
         } else {
-            // Shake or Error feedback
+            // WRONG Answer - Penalty
+            // Shake feedback
             inputOverlay.animate([
                 { transform: 'translate(-50%, -100%) translateX(0)' },
                 { transform: 'translate(-50%, -100%) translateX(-10px)' },
                 { transform: 'translate(-50%, -100%) translateX(10px)' },
                 { transform: 'translate(-50%, -100%) translateX(0)' }
             ], { duration: 300 });
+
+            // Lock interface
+            submitBtn.disabled = true;
+            submitBtn.classList.add('locked');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = "⏳";
+
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('locked');
+                submitBtn.textContent = originalText;
+            }, penaltyDelay);
         }
     });
 

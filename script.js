@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString(),
             totalTime: timerEl.textContent,
             score: currentScore,
-            equation: equationParts.map(p => p.value).join(' ').replace(' ?', ' ' + currentResult),
+            equation: equationParts.slice(0, -1).map(p => p.value).join(''),
             steps: steps.map((s, i) => {
                 // Reconstruct the math exp for the step
                 // Step 0: Num1 Op1 Num2

@@ -1,0 +1,220 @@
+:root {
+    --bg-gradient: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
+    --text-color: #ffffff;
+    --accent-color: #ff007a;
+    --success-color: #00ff88;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --font-main: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-main);
+    background: var(--bg-gradient);
+    color: var(--text-color);
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.arcs-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.equation-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    z-index: 2;
+    padding-top: 200px; /* Space for arcs above */
+}
+
+.equation-item {
+    font-size: 4rem;
+    font-weight: 700;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: color 0.3s ease;
+}
+
+.equation-item.operator {
+    color: var(--accent-color);
+}
+
+.equation-item.question-mark {
+    color: var(--accent-color);
+    animation: pulse 2s infinite;
+}
+
+.equation-item.solved {
+    color: var(--success-color);
+}
+
+/* Rolling Input Overlay */
+.input-overlay {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transform: translate(-50%, -100%); /* Center bottom anchor */
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.input-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -90%);
+}
+
+.roller-container {
+    position: relative;
+    width: 80px;
+    height: 120px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.roller-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    cursor: grab;
+    transition: transform 0.1s ease-out; /* Smooth scrolling inertia handled by JS mostly, but this helps */
+}
+
+.roller-list:active {
+    cursor: grabbing;
+}
+
+.roller-item {
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    transition: color 0.2s, font-size 0.2s;
+}
+
+.roller-item.active {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.selection-highlight {
+    position: absolute;
+    top: 40px; /* Middle of 120px container (3 items visible) */
+    left: 0;
+    width: 100%;
+    height: 40px;
+    border-top: 1px solid var(--accent-color);
+    border-bottom: 1px solid var(--accent-color);
+    pointer-events: none;
+    background: rgba(255, 0, 122, 0.1);
+}
+
+.roller-mask-top, .roller-mask-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(26, 28, 44, 0.8), transparent);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.roller-mask-bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(26, 28, 44, 0.8), transparent);
+}
+
+.submit-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: var(--success-color);
+    color: #000;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+    transition: transform 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.submit-btn:hover {
+    transform: scale(1.1);
+    background: #5effb1;
+}
+
+.submit-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Arc Path Styling */
+path.game-arc {
+    fill: none;
+    stroke: var(--glass-border);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke 0.5s;
+}
+
+path.game-arc.active {
+    stroke: var(--accent-color);
+    stroke-dasharray: 10;
+    animation: dash 30s linear infinite;
+}
+
+path.game-arc.completed {
+    stroke: var(--success-color);
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}

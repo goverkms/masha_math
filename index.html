@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Arc Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <svg id="arcs-svg" class="arcs-layer"></svg>
+        <div id="equation-container" class="equation-container">
+            <!-- Numbers and signs will be injected here -->
+        </div>
+        
+        <!-- The Rolling Input Overlay -->
+        <div id="input-overlay" class="input-overlay hidden">
+            <div class="roller-container">
+                <div class="roller-mask-top"></div>
+                <ul id="roller-list" class="roller-list">
+                    <!-- Numbers 0-99 populated by JS -->
+                </ul>
+                <div class="roller-mask-bottom"></div>
+                <div class="selection-highlight"></div>
+            </div>
+            <button id="submit-btn" class="submit-btn">✓</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

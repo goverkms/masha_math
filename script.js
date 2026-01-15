@@ -95,7 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 2: Apply Row 2 Number and Sign
         const row2 = config[1];
-        const num2 = getRandomInt(row2.min, row2.max);
+
+        let max2 = row2.max;
+        if (row1.sign === '-') {
+            // Ensure result not negative: num1 - num2 >= 0 => num2 <= num1
+            max2 = Math.min(row2.max, currentResult);
+        }
+        // Safeguard if min > max
+        const min2 = Math.min(row2.min, max2);
+
+        const num2 = getRandomInt(min2, max2);
         equationParts.push({ value: num2, type: 'number', el: null });
 
         // Calculate intermediate
@@ -106,7 +115,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 3: Apply Row 3 Number and =
         const row3 = config[2];
-        const num3 = getRandomInt(row3.min, row3.max);
+
+        let max3 = row3.max;
+        if (row2.sign === '-') {
+            // Ensure result not negative: currentResult - num3 >= 0 => num3 <= currentResult
+            max3 = Math.min(row3.max, currentResult);
+        }
+        const min3 = Math.min(row3.min, max3);
+
+        const num3 = getRandomInt(min3, max3);
         equationParts.push({ value: num3, type: 'number', el: null });
 
         // Calculate final result before storing

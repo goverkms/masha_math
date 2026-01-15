@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let startY = 0;
     let currentTranslateY = 0;
     const itemHeight = 40;
-    const minRollerRange = -50;
+    const minRollerRange = 0;
     const maxRollerRange = 100;
 
     // Initialize
@@ -444,6 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
             arc.classList.remove('active');
             arc.classList.add('completed');
 
+            showSolvedResult(currentStep, inputVal);
+
             // Move to next
             setTimeout(() => {
                 activateStep(currentStep + 1);
@@ -458,6 +460,20 @@ document.addEventListener('DOMContentLoaded', () => {
             ], { duration: 300 });
         }
     });
+
+    function showSolvedResult(index, value) {
+        const arc = document.getElementById(`arc-${index}`);
+        const totalLength = arc.getTotalLength();
+        const midPoint = arc.getPointAtLength(totalLength / 2);
+
+        const resultEl = document.createElement('div');
+        resultEl.className = 'solved-result';
+        resultEl.textContent = value;
+        resultEl.style.left = `${midPoint.x}px`;
+        resultEl.style.top = `${midPoint.y - 15}px`; // Match input overlay position
+
+        document.querySelector('.game-container').appendChild(resultEl);
+    }
 
     function createConfetti() {
         // Simple celebration visual

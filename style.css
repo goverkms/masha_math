@@ -13,7 +13,8 @@
     user-select: none;
 }
 
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -50,13 +51,14 @@ body, html {
     justify-content: center;
     gap: 1rem;
     z-index: 2;
-    padding-top: 200px; /* Space for arcs above */
+    padding-top: 200px;
+    /* Space for arcs above */
 }
 
 .equation-item {
     font-size: 4rem;
     font-weight: 700;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     transition: color 0.3s ease;
 }
 
@@ -81,7 +83,8 @@ body, html {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    transform: translate(-50%, -100%); /* Center bottom anchor */
+    transform: translate(-50%, -100%);
+    /* Center bottom anchor */
     transition: opacity 0.3s, transform 0.3s;
 }
 
@@ -112,7 +115,8 @@ body, html {
     top: 0;
     left: 0;
     cursor: grab;
-    transition: transform 0.1s ease-out; /* Smooth scrolling inertia handled by JS mostly, but this helps */
+    transition: transform 0.1s ease-out;
+    /* Smooth scrolling inertia handled by JS mostly, but this helps */
 }
 
 .roller-list:active {
@@ -126,7 +130,7 @@ body, html {
     align-items: center;
     font-size: 1.5rem;
     font-weight: 500;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     transition: color 0.2s, font-size 0.2s;
 }
 
@@ -138,7 +142,8 @@ body, html {
 
 .selection-highlight {
     position: absolute;
-    top: 40px; /* Middle of 120px container (3 items visible) */
+    top: 40px;
+    /* Middle of 120px container (3 items visible) */
     left: 0;
     width: 100%;
     height: 40px;
@@ -148,7 +153,8 @@ body, html {
     background: rgba(255, 0, 122, 0.1);
 }
 
-.roller-mask-top, .roller-mask-bottom {
+.roller-mask-top,
+.roller-mask-bottom {
     position: absolute;
     left: 0;
     width: 100%;
@@ -189,9 +195,20 @@ body, html {
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Arc Path Styling */
@@ -216,5 +233,33 @@ path.game-arc.completed {
 @keyframes dash {
     to {
         stroke-dashoffset: -1000;
+    }
+}
+
+.solved-result {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--success-color);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--success-color);
+    box-shadow: 0 4px 10px rgba(0, 255, 136, 0.2);
+    z-index: 5;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, -100%) scale(1);
+        opacity: 1;
     }
 }

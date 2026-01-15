@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemHeight = 40;
     const minRollerRange = 0;
     const maxRollerRange = 100;
+    const nextStepDelay = 10000; // 10 seconds delay between steps
 
     // Timer State
     let startTime = 0;
@@ -516,10 +517,13 @@ document.addEventListener('DOMContentLoaded', () => {
             step.duration = duration; // Store for history
             showSolvedResult(currentStep, inputVal, duration);
 
+            // Hide input during delay
+            inputOverlay.classList.add('hidden');
+
             // Move to next
             setTimeout(() => {
                 activateStep(currentStep + 1);
-            }, 500);
+            }, nextStepDelay);
         } else {
             // Shake or Error feedback
             inputOverlay.animate([

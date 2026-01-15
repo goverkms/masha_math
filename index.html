@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,13 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="game-container">
+        <div id="game-timer" class="game-timer">00:00</div>
         <svg id="arcs-svg" class="arcs-layer"></svg>
         <div id="equation-container" class="equation-container">
             <!-- Numbers and signs will be injected here -->
         </div>
-        
+
         <!-- The Rolling Input Overlay -->
         <div id="input-overlay" class="input-overlay hidden">
             <div class="roller-container">
@@ -32,4 +35,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

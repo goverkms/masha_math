@@ -263,3 +263,43 @@ path.game-arc.completed {
         opacity: 1;
     }
 }
+
+.game-timer {
+    position: absolute;
+    top: 20px;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 30px;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--glass-border);
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.step-time-label {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 5px;
+    /* Spacing from the result number */
+    white-space: nowrap;
+    animation: fadeIn 0.5s ease-out;
+    bottom: 100%;
+    /* Position above the solved result content */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -80%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%);
+    }
+}

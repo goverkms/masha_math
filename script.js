@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const minRollerRange = 0;
     const maxRollerRange = 100;
 
+    // Timer State
+    let startTime = 0;
+    let stepStartTime = 0;
+    let timerInterval = null;
+    const timerEl = document.getElementById('game-timer');
+
     // Initialize
     initGame();
 
@@ -28,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         generateEquation();
         renderEquation();
         setupRoller();
+
+        startTimer();
 
         // Wait for fonts to load to ensure correct positioning
         document.fonts.ready.then(() => {
@@ -43,6 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 positionOverlay(currentStep); // Re-position overlay if active
             }
         });
+    }
+
+    function startTimer() {
+        startTime = Date.now();
+        stepStartTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            timerEl.textContent = `${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    function getStepDuration() {
+        const now = Date.now();
+        const duration = (now - stepStartTime) / 1000; // in seconds
+        stepStartTime = now; // reset for next step
+        return duration.toFixed(1) + 's';
     }
 
     async function loadConfig() {
@@ -255,6 +281,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         currentStep = index;
 
+        // Start tracking time for this step
+        stepStartTime = Date.now();
+
         // Highlight Arc
         const arc = document.getElementById(`arc-${index}`);
         arc.classList.add('active');
@@ -461,7 +490,8 @@ document.addEventListener('DOMContentLoaded', () => {
             arc.classList.remove('active');
             arc.classList.add('completed');
 
-            showSolvedResult(currentStep, inputVal);
+            const duration = getStepDuration();
+            showSolvedResult(currentStep, inputVal, duration);
 
             // Move to next
             setTimeout(() => {
@@ -478,16 +508,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function showSolvedResult(index, value) {
+    function showSolvedResult(index, value, timeSpent) {
         const arc = document.getElementById(`arc-${index}`);
         const totalLength = arc.getTotalLength();
         const midPoint = arc.getPointAtLength(totalLength / 2);
 
         const resultEl = document.createElement('div');
         resultEl.className = 'solved-result';
-        resultEl.textContent = value;
+        // Display time above result
+        resultEl.innerHTML = `<div class="step-time-label">${timeSpent}</div>${value}`;
+
         resultEl.style.left = `${midPoint.x}px`;
-        resultEl.style.top = `${midPoint.y - 15}px`; // Match input overlay position
+        resultEl.style.top = `${midPoint.y - 15}px`;
 
         document.querySelector('.game-container').appendChild(resultEl);
     }

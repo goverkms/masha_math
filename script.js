@@ -311,17 +311,20 @@ document.addEventListener('DOMContentLoaded', () => {
         qMark.classList.add('solved');
 
         createConfetti();
-        showSheriff();
+        showCharacters();
     }
 
-    function showSheriff() {
+    function showCharacters() {
         const sheriff = document.getElementById('sheriff-container');
-        if (sheriff) {
-            sheriff.classList.remove('hidden');
-            // Force reflow
-            void sheriff.offsetWidth;
-            sheriff.classList.add('celebrate');
-        }
+        const deputy = document.getElementById('deputy-container');
+
+        [sheriff, deputy].forEach(char => {
+            if (char) {
+                char.classList.remove('hidden');
+                void char.offsetWidth;
+                char.classList.add('celebrate');
+            }
+        });
     }
 
     // --- Roller Logic ---

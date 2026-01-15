@@ -304,10 +304,9 @@ path.game-arc.completed {
     }
 }
 
-.sheriff-container {
+.character-container {
     position: absolute;
     bottom: 0px;
-    right: 20px;
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -316,24 +315,29 @@ path.game-arc.completed {
     transform: translateY(150%);
 }
 
-.sheriff-container.visible {
-    transform: translateY(10%);
-    /* Peek up */
+.sheriff-pos {
+    left: 20px;
+}
+
+.deputy-pos {
+    right: 20px;
 }
 
 /* Full view on win */
-.sheriff-container.celebrate {
-    transform: translateY(-20%);
+.character-container.celebrate {
+    transform: translateY(-5%);
+    /* Show most of body */
     animation: bounce 1s infinite alternate ease-in-out;
 }
 
-.sheriff-img {
+.character-img {
     width: 250px;
+    /* Adjust if needed */
     height: auto;
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
 }
 
-.sheriff-bubble {
+.character-bubble {
     background: #fff;
     color: #000;
     padding: 15px 25px;
@@ -341,25 +345,33 @@ path.game-arc.completed {
     font-weight: bold;
     font-size: 1.5rem;
     position: absolute;
-    top: -60px;
-    right: 50px;
+    top: -40px;
     opacity: 0;
     transform: scale(0);
     transition: all 0.4s 0.5s;
-    /* Delay bubble */
+    white-space: nowrap;
 }
 
-.sheriff-container.celebrate .sheriff-bubble {
+/* Specific bubble positioning */
+.sheriff-pos .character-bubble {
+    right: -20px;
+}
+
+.deputy-pos .character-bubble {
+    left: -20px;
+}
+
+.character-container.celebrate .character-bubble {
     opacity: 1;
     transform: scale(1);
 }
 
 @keyframes bounce {
     from {
-        transform: translateY(-20%);
+        transform: translateY(-5%);
     }
 
     to {
-        transform: translateY(-25%);
+        transform: translateY(-10%);
     }
 }

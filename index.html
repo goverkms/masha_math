@@ -14,10 +14,20 @@
 <body>
     <div class="game-container">
         <div id="game-timer" class="game-timer">00:00</div>
-        <div id="sheriff-container" class="sheriff-container hidden">
-            <img src="sheriff.png" alt="Sheriff Labrador" class="sheriff-img">
-            <div class="sheriff-bubble">Great Job!</div>
+        <div id="game-timer" class="game-timer">00:00</div>
+
+        <!-- Sheriff on Left -->
+        <div id="sheriff-container" class="character-container sheriff-pos hidden">
+            <img src="sheriff.png" alt="Sheriff Labrador" class="character-img">
+            <div class="character-bubble">Great Job!</div>
         </div>
+
+        <!-- Deputy on Right -->
+        <div id="deputy-container" class="character-container deputy-pos hidden">
+            <img src="deputy.png" alt="Deputy" class="character-img">
+            <div class="character-bubble">Well Done!</div>
+        </div>
+
         <svg id="arcs-svg" class="arcs-layer"></svg>
         <div id="equation-container" class="equation-container">
             <!-- Numbers and signs will be injected here -->

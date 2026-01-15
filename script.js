@@ -308,7 +308,20 @@ document.addEventListener('DOMContentLoaded', () => {
         qMark.classList.remove('question-mark');
         qMark.classList.add('solved');
 
+        qMark.classList.add('solved');
+
         createConfetti();
+        showSheriff();
+    }
+
+    function showSheriff() {
+        const sheriff = document.getElementById('sheriff-container');
+        if (sheriff) {
+            sheriff.classList.remove('hidden');
+            // Force reflow
+            void sheriff.offsetWidth;
+            sheriff.classList.add('celebrate');
+        }
     }
 
     // --- Roller Logic ---

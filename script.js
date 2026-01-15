@@ -310,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         createConfetti();
         showCharacters();
+        saveGameHistory();
     }
 
     function showCharacters() {
@@ -512,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
             arc.classList.add('completed');
 
             const duration = getStepDuration();
+            step.duration = duration; // Store for history
             showSolvedResult(currentStep, inputVal, duration);
 
             // Move to next
@@ -528,6 +530,39 @@ document.addEventListener('DOMContentLoaded', () => {
             ], { duration: 300 });
         }
     });
+
+    function saveGameHistory() {
+        const historyItem = {
+            timestamp: new Date().toISOString(),
+            totalTime: timerEl.textContent,
+            equation: equationParts.map(p => p.value).join(' ').replace(' ?', ' ' + currentResult),
+            steps: steps.map((s, i) => {
+                // Reconstruct the math exp for the step
+                // Step 0: Num1 Op1 Num2
+                // Step 1: (Result of 0) Op2 Num3
+                let exp = "";
+                const op = equationParts[s.endIdx - 1].value;
+                const num = equationParts[s.endIdx].value;
+                if (i === 0) {
+                    const n1 = equationParts[s.startIdx].value;
+                    exp = `${n1} ${op} ${num}`;
+                } else {
+                    const prevRes = steps[i - 1].result;
+                    exp = `${prevRes} ${op} ${num}`;
+                }
+                return {
+                    expression: exp,
+                    result: s.result,
+                    time: s.duration
+                };
+            })
+        };
+
+        let history = JSON.parse(localStorage.getItem('masha_math_history') || '[]');
+        history.push(historyItem);
+        localStorage.setItem('masha_math_history', JSON.stringify(history));
+        console.log("Game Saved:", historyItem);
+    }
 
     function showSolvedResult(index, value, timeSpent) {
         const arc = document.getElementById(`arc-${index}`);
@@ -573,5 +608,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
             anim.onfinish = () => el.remove();
         }
+    }
+
+    // --- History View Logic ---
+    const historyModal = document.getElementById('history-modal');
+    const closeHistoryBtn = document.getElementById('close-history');
+    const historyList = document.getElementById('history-list');
+
+    timerEl.addEventListener('click', () => {
+        showHistory();
+    });
+
+    closeHistoryBtn.addEventListener('click', () => {
+        historyModal.classList.add('hidden');
+    });
+
+    // Close on click outside
+    historyModal.addEventListener('click', (e) => {
+        if (e.target === historyModal) {
+            historyModal.classList.add('hidden');
+        }
+    });
+
+    function showHistory() {
+        const history = JSON.parse(localStorage.getItem('masha_math_history') || '[]');
+
+        // Sort: Latest first
+        history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        historyList.innerHTML = '';
+
+        if (history.length === 0) {
+            historyList.innerHTML = '<tr><td colspan="3" style="text-align:center">No history yet</td></tr>';
+        } else {
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+
+                const date = new Date(item.timestamp);
+                const dateStr = date.toLocaleString();
+
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td>${item.equation}</td>
+                    <td>${item.totalTime}</td>
+                `;
+                historyList.appendChild(tr);
+            });
+        }
+
+        historyModal.classList.remove('hidden');
     }
 });

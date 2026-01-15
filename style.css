@@ -377,3 +377,108 @@ path.game-arc.completed {
         transform: translateY(-10%);
     }
 }
+
+/* History Modal */
+.timer-display {
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.timer-display:hover {
+    transform: translateX(-50%) scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.history-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.history-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.history-content {
+    background: #2a2d45;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.history-modal.hidden .history-content {
+    transform: scale(0.8);
+}
+
+.history-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.history-header h2 {
+    margin: 0;
+    color: var(--accent-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.history-body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-table th {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.history-table td {
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}

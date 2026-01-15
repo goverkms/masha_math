@@ -43,6 +43,31 @@
                 <div class="selection-highlight"></div>
             </div>
             <button id="submit-btn" class="submit-btn">✓</button>
+            <button id="submit-btn" class="submit-btn">✓</button>
+        </div>
+
+        <!-- History Modal -->
+        <div id="history-modal" class="history-modal hidden">
+            <div class="history-content">
+                <div class="history-header">
+                    <h2>Game History</h2>
+                    <button id="close-history" class="close-btn">×</button>
+                </div>
+                <div class="history-body">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Equation</th>
+                                <th>Total Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -27,6 +27,46 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     const timerEl = document.getElementById('timer-display');
 
+    // Score State
+    let currentScore = 5.0;
+    const starContainer = document.getElementById('star-container');
+
+    function updateStarDisplay() {
+        starContainer.innerHTML = '';
+        // 5 stars total
+        // logic:
+        // 5.0 -> 5 full
+        // 4.5 -> 4 full, 1 half
+        // 4.0 -> 4 full, 1 lost
+        // etc.
+
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.textContent = '★'; // Unicode star
+
+            if (currentScore >= i) {
+                // Full star
+                // default style is gold
+            } else if (currentScore >= i - 0.5) {
+                // Half star
+                star.classList.add('half');
+            } else {
+                // Lost star
+                star.classList.add('lost');
+            }
+            starContainer.appendChild(star);
+        }
+    }
+
+    function applyPenalty() {
+        if (currentScore > 0) {
+            currentScore -= 0.5;
+            if (currentScore < 0) currentScore = 0;
+            updateStarDisplay();
+        }
+    }
+
     // Initialize
     initGame();
 
@@ -35,6 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
         generateEquation();
         renderEquation();
         setupRoller();
+
+        // Reset Score
+        currentScore = 5.0;
+        updateStarDisplay();
 
         startTimer();
 
@@ -549,6 +593,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.classList.remove('locked');
                 submitBtn.textContent = originalText;
             }, penaltyDelay);
+
+            // Penalty Logic
+            step.wrongCount = (step.wrongCount || 0) + 1;
+            applyPenalty();
         }
     });
 
@@ -556,6 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const historyItem = {
             timestamp: new Date().toISOString(),
             totalTime: timerEl.textContent,
+            score: currentScore,
             equation: equationParts.map(p => p.value).join(' ').replace(' ?', ' ' + currentResult),
             steps: steps.map((s, i) => {
                 // Reconstruct the math exp for the step
@@ -574,7 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     expression: exp,
                     result: s.result,
-                    time: s.duration
+                    time: s.duration,
+                    wrongCount: s.wrongCount || 0
                 };
             })
         };
@@ -660,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyList.innerHTML = '';
 
         if (history.length === 0) {
-            historyList.innerHTML = '<tr><td colspan="3" style="text-align:center">No history yet</td></tr>';
+            historyList.innerHTML = '<tr><td colspan="4" style="text-align:center">No history yet</td></tr>';
         } else {
             history.forEach(item => {
                 const tr = document.createElement('tr');
@@ -672,6 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${dateStr}</td>
                     <td>${item.equation}</td>
                     <td>${item.totalTime}</td>
+                    <td>${item.score}⭐</td>
                 `;
                 historyList.appendChild(tr);
             });

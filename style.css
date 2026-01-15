@@ -289,6 +289,38 @@ path.game-arc.completed {
     transform: translateX(-50%);
 }
 
+.star-container {
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 10;
+}
+
+.star {
+    font-size: 2rem;
+    color: #ffd700;
+    transition: all 0.3s;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+.star.lost {
+    filter: grayscale(100%);
+    opacity: 0.3;
+}
+
+.star.half {
+    /* Visual trick for half star could be handled by swapping char or gradient input, 
+       but simple opacity/scale might be clearer. 
+       Let's use a linear gradient on text clip for true half star if compatible, 
+       or just a different icon. */
+    background: linear-gradient(90deg, #ffd700 50%, #555 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .step-time-label {
     position: absolute;
     transform: translate(-50%, -100%);

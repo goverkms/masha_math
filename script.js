@@ -31,6 +31,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentScore = 5.0;
     const starContainer = document.getElementById('star-container');
 
+    // Name State
+    let playerName = localStorage.getItem('player_name') || '';
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) {
+        nameInput.value = playerName;
+        nameInput.addEventListener('input', (e) => {
+            playerName = e.target.value.trim();
+            localStorage.setItem('player_name', playerName);
+            updateCharacterBubbles();
+        });
+    }
+
+    function updateCharacterBubbles() {
+        const sheriffBubble = document.querySelector('#sheriff-container .character-bubble');
+        const deputyBubble = document.querySelector('#deputy-container .character-bubble');
+        const suffix = playerName ? `, ${playerName}!` : '!';
+        if (sheriffBubble) sheriffBubble.textContent = `Great Job${suffix}`;
+        if (deputyBubble) deputyBubble.textContent = `Well Done${suffix}`;
+    }
+
+    // Call it once early
+    updateCharacterBubbles();
+
     function updateStarDisplay() {
         starContainer.innerHTML = '';
         // 5 stars total
@@ -358,9 +381,36 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGameHistory();
     }
 
+    function resetGame() {
+        // Clear interval
+        if (timerInterval) clearInterval(timerInterval);
+
+        // Hide UI elements
+        inputOverlay.classList.add('hidden');
+        historyModal.classList.add('hidden');
+
+        // Remove solved results
+        document.querySelectorAll('.solved-result').forEach(el => el.remove());
+
+        // Reset characters
+        const sheriff = document.getElementById('sheriff-container');
+        const deputy = document.getElementById('deputy-container');
+        [sheriff, deputy].forEach(char => {
+            if (char) {
+                char.classList.add('hidden');
+                char.classList.remove('celebrate');
+            }
+        });
+
+        // Re-init
+        initGame();
+    }
+
     function showCharacters() {
         const sheriff = document.getElementById('sheriff-container');
         const deputy = document.getElementById('deputy-container');
+
+        updateCharacterBubbles(); // Refresh text in case name changed
 
         [sheriff, deputy].forEach(char => {
             if (char) {
@@ -685,6 +735,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyModal = document.getElementById('history-modal');
     const closeHistoryBtn = document.getElementById('close-history');
     const historyList = document.getElementById('history-list');
+
+    const newGameBtn = document.getElementById('new-game-btn');
+
+    newGameBtn.addEventListener('click', () => {
+        resetGame();
+    });
 
     timerEl.addEventListener('click', () => {
         showHistory();

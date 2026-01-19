@@ -54,6 +54,7 @@
                 <div class="history-header">
                     <div class="header-left">
                         <button id="new-game-btn" class="refresh-btn" title="New Game">↻</button>
+                        <button id="open-config-btn" class="config-btn" title="Settings">⚙️</button>
                         <input type="text" id="player-name" placeholder="Enter Name" class="name-input">
                     </div>
                     <h2>Game History</h2>
@@ -74,6 +75,38 @@
                             <!-- Populated by JS -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config Editor Modal -->
+        <div id="config-modal" class="config-modal hidden">
+            <div class="config-content">
+                <div class="config-header">
+                    <h2>⚙️ Game Settings</h2>
+                    <button id="close-config" class="close-btn">×</button>
+                </div>
+                <div class="config-body">
+                    <table class="config-table">
+                        <thead>
+                            <tr>
+                                <th>Min</th>
+                                <th>Max</th>
+                                <th>Operator</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="config-list">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="config-actions">
+                        <button id="add-config-row" class="add-row-btn">+ Add Row</button>
+                    </div>
+                </div>
+                <div class="config-footer">
+                    <button id="save-config" class="save-config-btn">Save & Apply</button>
+                    <button id="reset-config" class="reset-config-btn">Reset to Default</button>
                 </div>
             </div>
         </div>

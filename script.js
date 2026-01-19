@@ -144,7 +144,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
 
+    // Default config for reset
+    const DEFAULT_CONFIG = [
+        { min: 7, max: 20, sign: "+" },
+        { min: 7, max: 20, sign: "-" },
+        { min: 7, max: 20, sign: "=" }
+    ];
+
     async function loadConfig() {
+        // First check localStorage
+        const savedConfig = localStorage.getItem('masha_math_config');
+        if (savedConfig) {
+            try {
+                config = JSON.parse(savedConfig);
+                console.log("Config loaded from localStorage:", config);
+                return;
+            } catch (e) {
+                console.error("Error parsing saved config:", e);
+            }
+        }
+
+        // If no localStorage config, try fetching from config.txt
         try {
             const response = await fetch('config.txt');
             const text = await response.text();
@@ -157,14 +177,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     sign: sign.trim()
                 };
             });
+            // Save to localStorage for future use
+            localStorage.setItem('masha_math_config', JSON.stringify(config));
+            console.log("Config loaded from file and saved to localStorage:", config);
         } catch (e) {
             console.error("Error loading config:", e);
-            // Fallback for testing without server
-            config = [
-                { min: 7, max: 20, sign: "+" },
-                { min: 7, max: 20, sign: "-" },
-                { min: 7, max: 20, sign: "=" }
-            ];
+            // Fallback to default
+            config = [...DEFAULT_CONFIG];
+            localStorage.setItem('masha_math_config', JSON.stringify(config));
         }
     }
 
@@ -794,5 +814,151 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         historyModal.classList.remove('hidden');
+    }
+
+    // --- Config Editor Logic ---
+    const configModal = document.getElementById('config-modal');
+    const configList = document.getElementById('config-list');
+    const openConfigBtn = document.getElementById('open-config-btn');
+    const closeConfigBtn = document.getElementById('close-config');
+    const addConfigRowBtn = document.getElementById('add-config-row');
+    const saveConfigBtn = document.getElementById('save-config');
+    const resetConfigBtn = document.getElementById('reset-config');
+
+    let tempConfig = []; // Temporary config for editing
+
+    openConfigBtn.addEventListener('click', () => {
+        openConfigEditor();
+    });
+
+    closeConfigBtn.addEventListener('click', () => {
+        configModal.classList.add('hidden');
+    });
+
+    // Close on click outside
+    configModal.addEventListener('click', (e) => {
+        if (e.target === configModal) {
+            configModal.classList.add('hidden');
+        }
+    });
+
+    addConfigRowBtn.addEventListener('click', () => {
+        tempConfig.push({ min: 7, max: 20, sign: '+' });
+        renderConfigEditor();
+    });
+
+    saveConfigBtn.addEventListener('click', () => {
+        // Read values from inputs
+        const rows = configList.querySelectorAll('tr');
+        const newConfig = [];
+
+        rows.forEach(row => {
+            const minInput = row.querySelector('.config-min');
+            const maxInput = row.querySelector('.config-max');
+            const signSelect = row.querySelector('.config-sign');
+
+            if (minInput && maxInput && signSelect) {
+                newConfig.push({
+                    min: parseInt(minInput.value) || 1,
+                    max: parseInt(maxInput.value) || 20,
+                    sign: signSelect.value
+                });
+            }
+        });
+
+        if (newConfig.length >= 3) {
+            config = newConfig;
+            localStorage.setItem('masha_math_config', JSON.stringify(config));
+            configModal.classList.add('hidden');
+
+            // Restart game with new config
+            resetGame();
+        } else {
+            alert('At least 3 rows are required!');
+        }
+    });
+
+    resetConfigBtn.addEventListener('click', () => {
+        if (confirm('Reset to default settings?')) {
+            tempConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+            renderConfigEditor();
+        }
+    });
+
+    function openConfigEditor() {
+        // Clone current config for editing
+        tempConfig = JSON.parse(JSON.stringify(config));
+        renderConfigEditor();
+        configModal.classList.remove('hidden');
+    }
+
+    function renderConfigEditor() {
+        configList.innerHTML = '';
+
+        tempConfig.forEach((row, index) => {
+            const tr = document.createElement('tr');
+
+            const isLastRow = row.sign === '=' || index === tempConfig.length - 1;
+            const operators = isLastRow ? ['='] : ['+', '-', '*', '/'];
+
+            const optionsHtml = operators.map(op =>
+                `<option value="${op}" ${row.sign === op ? 'selected' : ''}>${op}</option>`
+            ).join('');
+
+            tr.innerHTML = `
+                <td>
+                    <input type="number" class="config-input config-min" value="${row.min}" min="1" max="99">
+                </td>
+                <td>
+                    <input type="number" class="config-input config-max" value="${row.max}" min="1" max="99">
+                </td>
+                <td>
+                    <select class="config-select config-sign">
+                        ${optionsHtml}
+                    </select>
+                </td>
+                <td>
+                    <button class="remove-row-btn" data-index="${index}" ${tempConfig.length <= 3 ? 'disabled' : ''}>×</button>
+                </td>
+            `;
+
+            // Add change listeners to update tempConfig
+            const minInput = tr.querySelector('.config-min');
+            const maxInput = tr.querySelector('.config-max');
+            const signSelect = tr.querySelector('.config-sign');
+
+            minInput.addEventListener('change', () => {
+                tempConfig[index].min = parseInt(minInput.value) || 1;
+            });
+
+            maxInput.addEventListener('change', () => {
+                tempConfig[index].max = parseInt(maxInput.value) || 20;
+            });
+
+            signSelect.addEventListener('change', () => {
+                tempConfig[index].sign = signSelect.value;
+            });
+
+            // Remove button handler
+            const removeBtn = tr.querySelector('.remove-row-btn');
+            removeBtn.addEventListener('click', () => {
+                if (tempConfig.length > 3) {
+                    tempConfig.splice(index, 1);
+                    // Ensure last row has '=' sign
+                    if (tempConfig.length > 0) {
+                        tempConfig[tempConfig.length - 1].sign = '=';
+                    }
+                    renderConfigEditor();
+                }
+            });
+
+            configList.appendChild(tr);
+        });
+
+        // Update remove button states
+        const removeButtons = configList.querySelectorAll('.remove-row-btn');
+        removeButtons.forEach(btn => {
+            btn.disabled = tempConfig.length <= 3;
+        });
     }
 });

@@ -853,7 +853,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tempConfig.forEach((row, index) => {
             const tr = document.createElement('tr');
 
-            const isLastRow = row.sign === '=' || index === tempConfig.length - 1;
+            const isLastRow = index === tempConfig.length - 1;
+
+            // Force last row sign to '=' if it's not
+            if (isLastRow) {
+                row.sign = '=';
+            } else if (row.sign === '=') {
+                // If it's NOT the last row but has '=', default it to '+' so user can change it
+                row.sign = '+';
+            }
+
             const operators = isLastRow ? ['='] : ['+', '-', '*', '/'];
 
             const optionsHtml = operators.map(op =>
@@ -868,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" class="config-input config-max" value="${row.max}" min="1" max="99">
                 </td>
                 <td>
-                    <select class="config-select config-sign">
+                    <select class="config-select config-sign" ${isLastRow ? 'disabled' : ''}>
                         ${optionsHtml}
                     </select>
                 </td>

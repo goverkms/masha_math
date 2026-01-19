@@ -192,65 +192,47 @@ document.addEventListener('DOMContentLoaded', () => {
         equationParts = [];
         currentResult = 0;
 
-        // 1. First Number (From Row 1 rules)
-        // "first number random from 7 to 20"
-        const row1 = config[0];
-        const num1 = getRandomInt(row1.min, row1.max);
-        equationParts.push({ value: num1, type: 'number', el: null });
-        currentResult = num1;
+        // Dynamic equation generation based on config length
+        // Each config row defines: min, max for a number and an operator
+        // The last row should have "=" as operator
 
-        // 2. Loop through operations
-        // Row 1 also gives the FIRST sign. 
-        // Row 2 gives the SECOND number and SECOND sign.
-        // Row 3 gives the THIRD number and "=" sign.
+        for (let i = 0; i < config.length; i++) {
+            const row = config[i];
+            const prevSign = i > 0 ? config[i - 1].sign : null;
 
-        // Logic interpretation based on prompt:
-        // "7;20;+" -> generates first number (7-20) and a "+" sign.
-        // "7;20;-" -> generates second number (7-20) and a "-" sign.
-        // "7;20;=" -> generates third number (7-20) and a "=" sign.
+            // Generate number with constraints
+            let maxVal = row.max;
+            let minVal = row.min;
 
-        // Step 1: Apply Row 1 Sign
-        equationParts.push({ value: row1.sign, type: 'operator', el: null });
+            // For subtraction, ensure result doesn't go negative
+            if (prevSign === '-') {
+                maxVal = Math.min(row.max, currentResult);
+                minVal = Math.min(row.min, maxVal);
+            }
 
-        // Step 2: Apply Row 2 Number and Sign
-        const row2 = config[1];
+            const num = getRandomInt(minVal, maxVal);
+            equationParts.push({ value: num, type: 'number', el: null });
 
-        let max2 = row2.max;
-        if (row1.sign === '-') {
-            // Ensure result not negative: num1 - num2 >= 0 => num2 <= num1
-            max2 = Math.min(row2.max, currentResult);
+            // Calculate running result
+            if (i === 0) {
+                currentResult = num;
+            } else {
+                switch (prevSign) {
+                    case '+': currentResult += num; break;
+                    case '-': currentResult -= num; break;
+                    case '*': currentResult *= num; break;
+                    case '/': currentResult = Math.floor(currentResult / num); break;
+                }
+            }
+
+            // Add operator (except for last row which uses "=")
+            if (row.sign === '=') {
+                equationParts.push({ value: '=', type: 'equals', el: null });
+                equationParts.push({ value: '?', type: 'question-mark', el: null });
+            } else {
+                equationParts.push({ value: row.sign, type: 'operator', el: null });
+            }
         }
-        // Safeguard if min > max
-        const min2 = Math.min(row2.min, max2);
-
-        const num2 = getRandomInt(min2, max2);
-        equationParts.push({ value: num2, type: 'number', el: null });
-
-        // Calculate intermediate
-        if (row1.sign === '+') currentResult += num2;
-        else if (row1.sign === '-') currentResult -= num2; // Though generic parser would be better, prompt implies specific sequence
-
-        equationParts.push({ value: row2.sign, type: 'operator', el: null });
-
-        // Step 3: Apply Row 3 Number and =
-        const row3 = config[2];
-
-        let max3 = row3.max;
-        if (row2.sign === '-') {
-            // Ensure result not negative: currentResult - num3 >= 0 => num3 <= currentResult
-            max3 = Math.min(row3.max, currentResult);
-        }
-        const min3 = Math.min(row3.min, max3);
-
-        const num3 = getRandomInt(min3, max3);
-        equationParts.push({ value: num3, type: 'number', el: null });
-
-        // Calculate final result before storing
-        if (row2.sign === '+') currentResult += num3;
-        else if (row2.sign === '-') currentResult -= num3;
-
-        equationParts.push({ value: '=', type: 'equals', el: null });
-        equationParts.push({ value: '?', type: 'question-mark', el: null }); // Final placeholder
     }
 
     function getRandomInt(min, max) {
@@ -273,55 +255,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateSteps() {
         steps = [];
-        // Step 1: Num1 (idx 0) op1 (idx 1) Num2 (idx 2)
-        steps.push({
-            startIdx: 0,
-            opIdx: 1,
-            endIdx: 2,
-            result: getPartialResult(0, 2)
-        });
+        let runningRes = equationParts[0].value;
 
-        // Step 2: Result of Step 1 ... op2 (idx 3) Num3 (idx 4)
-        // Visually, the arc usually connects the *previous result location* to the new number.
-        // However, standard math arcs often jump:
-        // Step 1: Arc over Num1 and Num2.
-        // Step 2: Arc from Num1 (start) to Num3 (end) OR Start of Num2 to Num3. 
-        // Let's implement: Arc from Start of Eq to End of current operand.
+        // Loop through all operations (config.length - 1 operations)
+        for (let i = 0; i < config.length - 1; i++) {
+            const opIdx = i * 2 + 1;
+            const nextNumIdx = i * 2 + 2;
+            const op = equationParts[opIdx].value;
+            const nextNum = equationParts[nextNumIdx].value;
 
-        // Actually, typically "connect numbers by arcs"
-        // Arc 1: Connects 10 and 15
-        // Arc 2: Connects result of (10+15) position ??? No, usually connects 15 to 7?
-        // Prompt says: "above arc which is connect 10+15 has to be input... after... push button... if correct change question mark"
+            switch (op) {
+                case '+': runningRes += nextNum; break;
+                case '-': runningRes -= nextNum; break;
+                case '*': runningRes *= nextNum; break;
+                case '/': runningRes = Math.floor(runningRes / nextNum); break;
+            }
 
-        // Let's assume sequential pairs for visuals, or cumulative.
-        // Cumulative is cleaner for "10+15-7".
-        // Arc 1: 10 to 15. Input asks for 10+15=25.
-        // Arc 2: 15 to 7? Or Start to 7? 
-        // Let's do: Start of Equation to End of Current Number.
-
-        // Step 1 target: (Num1 + Num2). Visual: Arc spanning Num1 -> Num2.
-        // Step 2: Connect result of first op (visually, the end of first op) to the third number
-        // Start from Num2 (idx 2) to Num3 (idx 4) for a cleaner sequential chain
-        steps.push({
-            startIdx: 2,
-            endIdx: 4,
-            result: currentResult
-        });
-    }
-
-    // Helper to calc result based on the config logic explicitly
-    function getPartialResult(startIdx, endIdx) {
-        // Hardcoded for this 3-number structure based on prompt
-        // Step 1 is just the first two numbers
-        if (endIdx === 2) {
-            const n1 = equationParts[0].value;
-            const op = equationParts[1].value;
-            const n2 = equationParts[2].value;
-            if (op === '+') return n1 + n2;
-            if (op === '-') return n1 - n2;
+            steps.push({
+                startIdx: i * 2,
+                endIdx: (i + 1) * 2,
+                result: runningRes,
+                wrongCount: 0
+            });
         }
-        return currentResult; // Fallback
     }
+
+
 
     function drawArcs() {
         svgLayer.innerHTML = ''; // Clear previous
@@ -786,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyList.innerHTML = '';
 
         if (history.length === 0) {
-            historyList.innerHTML = '<tr><td colspan="5" style="text-align:center">No history yet</td></tr>';
+            historyList.innerHTML = '<tr><td colspan="4" style="text-align:center">No history yet</td></tr>';
         } else {
             history.forEach(item => {
                 const tr = document.createElement('tr');
@@ -794,18 +753,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = new Date(item.timestamp);
                 const dateStr = date.toLocaleString();
 
-                // Safe access for steps
-                const s1 = item.steps && item.steps[0] ? item.steps[0] : { time: '-', wrongCount: 0 };
-                const s2 = item.steps && item.steps[1] ? item.steps[1] : { time: '-', wrongCount: 0 };
-
-                // Format: "00:05 (1❌)"
-                const s1Text = `${s1.time} <span style="font-size:0.8em; opacity:0.7">(${s1.wrongCount}❌)</span>`;
-                const s2Text = `${s2.time} <span style="font-size:0.8em; opacity:0.7">(${s2.wrongCount}❌)</span>`;
+                // Format all steps into a single string
+                const stepsText = (item.steps || []).map((s, idx) => {
+                    return `<div style="margin-bottom: 4px;">S${idx + 1}: ${s.time} <span style="font-size:0.8em; opacity:0.7">(${s.wrongCount}❌)</span></div>`;
+                }).join('');
 
                 tr.innerHTML = `
                     <td>${dateStr}</td>
-                    <td>${s1Text}</td>
-                    <td>${s2Text}</td>
+                    <td>${stepsText}</td>
                     <td>${item.equation}</td>
                     <td>${item.score}⭐</td>
                 `;

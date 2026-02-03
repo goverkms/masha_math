@@ -716,6 +716,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeHistoryBtn = document.getElementById('close-history');
     const historyList = document.getElementById('history-list');
 
+    let currentSort = { column: 'date', direction: 'desc' };
+
+    // Header click listeners
+    document.querySelectorAll('.history-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const column = th.getAttribute('data-sort');
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'desc'; // Default descent
+            }
+            showHistory();
+        });
+    });
+
     const newGameBtn = document.getElementById('new-game-btn');
 
     newGameBtn.addEventListener('click', () => {
@@ -740,8 +756,48 @@ document.addEventListener('DOMContentLoaded', () => {
     function showHistory() {
         const history = JSON.parse(localStorage.getItem('masha_math_history') || '[]');
 
-        // Sort: Latest first
-        history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // Sort:
+        history.sort((a, b) => {
+            let valA, valB;
+            switch (currentSort.column) {
+                case 'steps':
+                    // Sort by totalTime string (HH:MM:SS)
+                    valA = a.totalTime || "00:00:00";
+                    valB = b.totalTime || "00:00:00";
+                    break;
+                case 'equation':
+                    // Sort by sum of numbers in equation
+                    const getSum = (eq) => {
+                        const nums = eq.match(/\d+/g);
+                        return nums ? nums.reduce((acc, n) => acc + parseInt(n), 0) : 0;
+                    };
+                    valA = getSum(a.equation);
+                    valB = getSum(b.equation);
+                    break;
+                case 'score':
+                    valA = a.score;
+                    valB = b.score;
+                    break;
+                case 'date':
+                default:
+                    valA = new Date(a.timestamp).getTime();
+                    valB = new Date(b.timestamp).getTime();
+                    break;
+            }
+
+            if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        // Update header indicators
+        document.querySelectorAll('.history-table th').forEach(th => {
+            const sortKey = th.getAttribute('data-sort');
+            th.textContent = th.textContent.replace(/ [▲▼]/, ''); // Clear
+            if (sortKey === currentSort.column) {
+                th.textContent += currentSort.direction === 'asc' ? ' ▲' : ' ▼';
+            }
+        });
 
         historyList.innerHTML = '';
 

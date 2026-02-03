@@ -755,9 +755,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateStr = date.toLocaleString();
 
                 // Format all steps into a single string
-                const stepsText = (item.steps || []).map((s, idx) => {
+                let stepsText = (item.steps || []).map((s, idx) => {
                     return `<div style="margin-bottom: 4px;">S${idx + 1}: ${s.time} <span style="font-size:0.8em; opacity:0.7">(${s.wrongCount}❌)</span></div>`;
                 }).join('');
+                // Add total time at the end
+                if (item.totalTime) {
+                    stepsText += `<div style="margin-top: 4px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; font-weight: bold;">Total: ${item.totalTime}</div>`;
+                }
 
                 tr.innerHTML = `
                     <td>${dateStr}</td>

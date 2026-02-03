@@ -347,13 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function finishGame() {
+        if (timerInterval) clearInterval(timerInterval);
         inputOverlay.classList.add('hidden');
         const qMark = equationParts[equationParts.length - 1].el;
         qMark.textContent = currentResult + ""; // Ensure string
         qMark.classList.remove('question-mark');
         qMark.classList.add('solved');
 
-        qMark.classList.add('solved');
+
 
         createConfetti();
         showCharacters();

@@ -816,3 +816,26 @@ path.game-arc.completed {
     background: rgba(255, 255, 255, 0.15);
     color: #fff;
 }
+/* History Steps Collapsible */
+.steps-details summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--success-color);
+    list-style: none;
+}
+
+.steps-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.steps-details[open] summary {
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+}
+
+.steps-list {
+    padding-left: 5px;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.8);
+}

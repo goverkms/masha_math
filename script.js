@@ -811,17 +811,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateStr = date.toLocaleString();
 
                 // Format all steps into a single string
-                let stepsText = (item.steps || []).map((s, idx) => {
+                const stepsList = (item.steps || []).map((s, idx) => {
                     return `<div style="margin-bottom: 4px;">S${idx + 1}: ${s.time} <span style="font-size:0.8em; opacity:0.7">(${s.wrongCount}❌)</span></div>`;
                 }).join('');
-                // Add total time at the end
+
+                // Use details/summary for collapsible view
+                let stepsHtml = '';
                 if (item.totalTime) {
-                    stepsText += `<div style="margin-top: 4px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; font-weight: bold;">Total: ${item.totalTime}</div>`;
+                    stepsHtml = `
+                        <details class="steps-details">
+                            <summary>Total: ${item.totalTime}</summary>
+                            <div class="steps-list">
+                                ${stepsList}
+                            </div>
+                        </details>
+                    `;
+                } else {
+                    stepsHtml = stepsList;
                 }
 
                 tr.innerHTML = `
                     <td>${dateStr}</td>
-                    <td>${stepsText}</td>
+                    <td>${stepsHtml}</td>
                     <td>${item.equation}</td>
                     <td>${item.score}⭐</td>
                 `;

@@ -30,22 +30,32 @@
             <div class="character-bubble">Well Done!</div>
         </div>
 
-        <svg id="arcs-svg" class="arcs-layer"></svg>
+        <svg id="arcs-svg" class="arcs-layer" style="display: none;"></svg>
         <div id="equation-container" class="equation-container">
             <!-- Numbers and signs will be injected here -->
         </div>
 
-        <!-- The Rolling Input Overlay -->
-        <div id="input-overlay" class="input-overlay hidden">
-            <div class="roller-container">
-                <div class="roller-mask-top"></div>
-                <ul id="roller-list" class="roller-list">
-                    <!-- Numbers 0-99 populated by JS -->
-                </ul>
-                <div class="roller-mask-bottom"></div>
-                <div class="selection-highlight"></div>
+        <!-- Column Step Container (Middle Section) -->
+        <div id="column-step-container" class="column-step-container hidden">
+            <!-- Column math will be injected here -->
+        </div>
+
+        <!-- Keypad Input Overlay (Bottom Section) -->
+        <div id="keypad-overlay" class="keypad-overlay hidden">
+            <div class="keypad-grid">
+                <button class="keypad-btn" data-val="1">1</button>
+                <button class="keypad-btn" data-val="2">2</button>
+                <button class="keypad-btn" data-val="3">3</button>
+                <button class="keypad-btn" data-val="4">4</button>
+                <button class="keypad-btn" data-val="5">5</button>
+                <button class="keypad-btn" data-val="6">6</button>
+                <button class="keypad-btn" data-val="7">7</button>
+                <button class="keypad-btn" data-val="8">8</button>
+                <button class="keypad-btn" data-val="9">9</button>
+                <button class="keypad-btn del-btn" id="keypad-del">⌫</button>
+                <button class="keypad-btn" data-val="0">0</button>
+                <button class="keypad-btn submit-btn" id="keypad-submit" disabled>✓</button>
             </div>
-            <button id="submit-btn" class="submit-btn">✓</button>
         </div>
 
         <!-- History Modal -->

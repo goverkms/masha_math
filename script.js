@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const equationContainer = document.getElementById('equation-container');
     const svgLayer = document.getElementById('arcs-svg');
-    const inputOverlay = document.getElementById('input-overlay');
-    const rollerList = document.getElementById('roller-list');
-    const submitBtn = document.getElementById('submit-btn');
+    const inputOverlay = document.getElementById('keypad-overlay');
+    const submitBtn = document.getElementById('keypad-submit');
 
     let config = [];
     let equationParts = []; // Stores objects { value: number/string, type: 'number'|'operator'|'equals'|'result' }
@@ -11,15 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentResult = 0; // Tracks the result as we go left to right
     let steps = []; // Stores indices of numbers involved in each step
 
-    // Roller State
-    let currentRollerValue = 0;
-    let isDragging = false;
-    let startY = 0;
-    let currentTranslateY = 0;
-    const itemHeight = 40;
-    const minRollerRange = 0;
-    const maxRollerRange = 100;
-    const nextStepDelay = 10000; // 10 seconds delay between steps
+    // Keypad State
+    let currentInputStr = "";
+    const nextStepDelay = 1500; // 1.5 seconds delay between steps
 
     // Timer State
     let startTime = 0;
@@ -96,8 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initGame() {
         await loadConfig();
         generateEquation();
-        renderEquation();
-        setupRoller();
+        setupKeypad();
 
         // Reset Score
         currentScore = 5.0;
@@ -105,19 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startTimer();
 
-        // Wait for fonts to load to ensure correct positioning
+        // Wait for fonts to load
         document.fonts.ready.then(() => {
             calculateSteps();
-            drawArcs();
             activateStep(0);
-        });
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            drawArcs();
-            if (currentStep < steps.length) {
-                positionOverlay(currentStep); // Re-position overlay if active
-            }
         });
     }
 
@@ -239,19 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function renderEquation() {
-        equationContainer.innerHTML = '';
-        equationParts.forEach((part, index) => {
-            const el = document.createElement('div');
-            el.className = `equation-item ${part.type}`;
-            el.textContent = part.value;
-            equationContainer.appendChild(el);
-            part.el = el;
-
-            // Add ID for better tracking if needed
-            el.dataset.index = index;
-        });
-    }
+    // renderEquation logic is now handled dynamically by renderTopEquation
 
     function calculateSteps() {
         steps = [];
@@ -282,48 +253,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function drawArcs() {
-        svgLayer.innerHTML = ''; // Clear previous
-        steps.forEach((step, index) => {
-            const startEl = equationParts[step.startIdx].el;
-            const endEl = equationParts[step.endIdx].el;
+    function renderTopEquation() {
+        equationContainer.innerHTML = '';
+        
+        let partsToShow = [];
+        if (currentStep === 0) {
+            partsToShow = [...equationParts];
+        } else if (currentStep < steps.length) {
+            partsToShow.push({ value: steps[currentStep - 1].result, type: 'number solved' });
+            const remainingStartIndex = steps[currentStep].endIdx - 1;
+            for(let i=remainingStartIndex; i<equationParts.length; i++) {
+                partsToShow.push(equationParts[i]);
+            }
+        }
 
-            const startRect = startEl.getBoundingClientRect();
-            const endRect = endEl.getBoundingClientRect();
+        partsToShow.forEach((part, index) => {
+            const el = document.createElement('div');
+            el.className = `equation-item ${part.type}`;
+            el.textContent = part.value;
+            
+            if (index <= 2 && currentStep < steps.length) {
+                el.style.textShadow = '0 0 15px var(--accent-color)';
+            } else {
+                el.style.opacity = '0.5';
+            }
 
-            // Calculate center points relative to container
-            // We need coords relative to the SVG which is absolute 0,0
-            const x1 = startRect.left + startRect.width / 2;
-            const x2 = endRect.left + endRect.width / 2;
-            const y = startRect.top; // Arcs go above
-
-            // Create Path
-            // Move to x1,y. Curve up and over to x2,y.
-            // Control points higher up.
-            const dist = Math.abs(x2 - x1);
-            const height = dist * 0.4; // Height proportional to width
-
-            const pathData = `M ${x1} ${y} Q ${(x1 + x2) / 2} ${y - height} ${x2} ${y}`;
-
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", pathData);
-            path.setAttribute("class", "game-arc");
-            path.id = `arc-${index}`;
-            svgLayer.appendChild(path);
+            equationContainer.appendChild(el);
+            if (part === equationParts[equationParts.length - 1]) {
+                equationParts[equationParts.length - 1].el = el;
+            }
         });
     }
 
-    function positionOverlay(stepIndex) {
-        if (inputOverlay.classList.contains('hidden')) return;
+    function renderColumnStep(index) {
+        const container = document.getElementById('column-step-container');
+        const step = steps[index];
+        
+        let topNumber = index === 0 ? equationParts[step.startIdx].value : steps[index-1].result;
+        let bottomNumber = equationParts[step.endIdx].value;
+        let operator = equationParts[step.endIdx - 1].value;
+        let expectedResultStr = String(step.result);
 
-        const arc = document.getElementById(`arc-${stepIndex}`);
-        if (!arc) return;
+        const maxLen = Math.max(String(topNumber).length, String(bottomNumber).length, expectedResultStr.length);
+        const topStr = String(topNumber).padStart(maxLen, ' ');
+        const bottomStr = String(bottomNumber).padStart(maxLen, ' ');
 
-        const totalLength = arc.getTotalLength();
-        const midPoint = arc.getPointAtLength(totalLength / 2);
+        let html = '<div class="column-math-container">';
 
-        inputOverlay.style.left = `${midPoint.x}px`;
-        inputOverlay.style.top = `${midPoint.y - 15}px`; // Increased spacing slightly
+        html += '<div class="math-row top-row">';
+        for(let char of topStr) {
+            html += `<span class="digit-box">${char === ' ' ? '' : char}</span>`;
+        }
+        html += '</div>';
+
+        html += '<div class="math-row bottom-row">';
+        html += `<span class="operator-sign">${operator}</span>`;
+        for(let char of bottomStr) {
+            html += `<span class="digit-box">${char === ' ' ? '' : char}</span>`;
+        }
+        html += '</div>';
+
+        html += '<div class="math-row input-row" id="column-input-row">';
+        for(let i=0; i<maxLen; i++) {
+            html += `<span class="digit-box input-box" data-idx="${i}"></span>`;
+        }
+        html += '</div>';
+
+        html += '</div>';
+        
+        container.innerHTML = html;
     }
 
     function activateStep(index) {
@@ -332,27 +330,39 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         currentStep = index;
-
-        // Start tracking time for this step
         stepStartTime = Date.now();
 
-        // Highlight Arc
-        const arc = document.getElementById(`arc-${index}`);
-        arc.classList.add('active');
+        renderTopEquation();
+        renderColumnStep(index);
 
+        document.getElementById('column-step-container').classList.remove('hidden');
         inputOverlay.classList.remove('hidden');
-        positionOverlay(index);
 
-        resetRoller();
+        currentInputStr = "";
+        updateKeypadUI();
     }
 
     function finishGame() {
         if (timerInterval) clearInterval(timerInterval);
         inputOverlay.classList.add('hidden');
-        const qMark = equationParts[equationParts.length - 1].el;
-        qMark.textContent = currentResult + ""; // Ensure string
-        qMark.classList.remove('question-mark');
-        qMark.classList.add('solved');
+        document.getElementById('column-step-container').classList.add('hidden');
+        
+        // Render Final Equation Fully Solved
+        equationContainer.innerHTML = '';
+        const finalParts = [
+            { value: '⭐', type: 'stars' },
+            ...equationParts.slice(0, -2),
+            { value: '=', type: 'equals' },
+            { value: currentResult, type: 'solved' },
+            { value: '⭐', type: 'stars' }
+        ];
+        
+        finalParts.forEach((part, index) => {
+            const el = document.createElement('div');
+            el.className = `equation-item ${part.type}`;
+            el.textContent = part.value;
+            equationContainer.appendChild(el);
+        });
 
 
 
@@ -401,218 +411,107 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Roller Logic ---
-    function setupRoller() {
-        // Populate
-        for (let i = minRollerRange; i <= maxRollerRange; i++) {
-            const li = document.createElement('li');
-            li.ClassName = 'roller-item';
-            li.textContent = i;
-            li.classList.add('roller-item');
-            rollerList.appendChild(li);
-        }
-
-        // Events
-        rollerList.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', endDrag);
-
-        // Touch events
-        rollerList.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
-        document.addEventListener('touchmove', (e) => onDrag(e.touches[0]));
-        document.addEventListener('touchend', endDrag);
-
-        // Wheel
-        rollerList.addEventListener('wheel', (e) => {
-            currentTranslateY -= e.deltaY;
-            clampScroll();
-            updateRollerVisuals();
+    // --- Keypad Logic ---
+    function setupKeypad() {
+        const delBtn = document.getElementById('keypad-del');
+        
+        document.querySelectorAll('.keypad-btn').forEach(btn => {
+            if(btn.id !== 'keypad-del' && btn.id !== 'keypad-submit') {
+                btn.addEventListener('click', () => {
+                    if(inputOverlay.classList.contains('locked')) return;
+                    const val = btn.getAttribute('data-val');
+                    if(val !== null) handleDigitKey(val);
+                });
+            }
         });
+
+        delBtn.addEventListener('click', handleDelKey);
+        submitBtn.addEventListener('click', handleSubmit);
     }
 
-    function startDrag(e) {
-        isDragging = true;
-        startY = e.clientY;
-    }
-
-    function onDrag(e) {
-        if (!isDragging) return;
-        const delta = e.clientY - startY;
-        currentTranslateY += delta;
-        startY = e.clientY;
-        clampScroll();
-        updateRollerVisuals();
-    }
-
-    function endDrag() {
-        isDragging = false;
-        snapToGrid();
-    }
-
-    function clampScroll() {
-        const totalItems = rollerList.children.length; // Includes padding
-        if (totalItems === 0) return;
-
-        // Items: Pad, Val1, Val2 ..., Pad
-        // Max Scroll (Top): 0 (Pad at top, Val1 selected) or maybe slightly positive for bounce
-        // Min Scroll (Bottom): -((totalItems - 1) * itemHeight)? 
-        // Let's allow loose scrolling and let snap handle limits, but apply the transform here.
-
-        // Just apply global transform variable to element
-        rollerList.style.transform = `translateY(${currentTranslateY}px)`;
-    }
-
-    function snapToGrid() {
-        // Round to nearest itemHeight
-        let index = Math.round(currentTranslateY / itemHeight);
-
-        currentTranslateY = index * itemHeight;
-
-        // Hard Clamp to valid range
-        // Valid indices:
-        // Index 0 corresponds to first real item (due to padding) being selected?
-        // Let's check resetRoller puts us at 0.
-        // In resetRoller: translateY = 0.
-        // If translateY 0 -> Value should be 0? 
-        // Our loop starts at minRollerRange (-50).
-        // So item[1] (first real item) is -50.
-        // If translate is 0, we see Item[1] in window.
-        // So Value = minRollerRange.
-
-        // We need to shift:
-        // currentRollerValue = minRollerRange - index (because scrolling UP goes negative index?)
-        // Let's re-verify direction.
-        // Drag Up (negative delta) -> translateY decreases (negative). 
-        // Content moves Up. Lower items appear. Value increases.
-        // So: more negative index = higher value.
-        // Value = minRollerRange + (-index).
-
-        // Correct.
-
-        // Clamp index
-        const totalItems = maxRollerRange - minRollerRange + 1;
-        // Max value is maxRollerRange.
-        // Min value is minRollerRange.
-
-        // if Value > max: Value = max. -> -index > max - min -> -index > diff. -> index < -diff.
-        // if Value < min: Value = min. -> -index < 0. -> index > 0.
-
-        const maxVal = maxRollerRange;
-        const minVal = minRollerRange;
-
-        let calculatedVal = minVal - index;
-
-        if (calculatedVal > maxVal) {
-            calculatedVal = maxVal;
-            index = -(maxVal - minVal);
-        }
-        if (calculatedVal < minVal) {
-            calculatedVal = minVal;
-            index = 0;
-        }
-
-        currentTranslateY = index * itemHeight;
-        rollerList.style.transform = `translateY(${currentTranslateY}px)`;
-
-        currentRollerValue = calculatedVal;
-        updateRollerVisuals();
-    }
-
-    function updateRollerVisuals() {
-        const index = Math.round(currentTranslateY / itemHeight);
-        // index 0 -> Value minRollerRange (-50).
-        // The list has padding at child[0].
-        // The real item for -50 is child[1].
-        // The real item for -49 is child[2].
-        // General: child[1 + (value - min)].
-        // Or based on index:
-        // value = min - index.
-        // childIdx = 1 + (min - index - min) = 1 - index.
-
-        const items = rollerList.children;
-        for (let i = 0; i < items.length; i++) {
-            items[i].classList.remove('active');
-        }
-
-        const activeIdx = 1 - index;
-        if (items[activeIdx]) {
-            items[activeIdx].classList.add('active');
+    function handleDigitKey(digit) {
+        const expectedLen = String(steps[currentStep].result).length;
+        if(currentInputStr.length < expectedLen) {
+            currentInputStr = digit + currentInputStr;
+            updateKeypadUI();
         }
     }
 
-    function resetRoller() {
-        // We need padding for the roller to work nicely (empty top and bottom)
-        if (!rollerList.hasPadding) {
-            const padTop = document.createElement('li');
-            padTop.className = 'roller-item';
-            rollerList.prepend(padTop);
-
-            const padBottom = document.createElement('li');
-            padBottom.className = 'roller-item';
-            rollerList.appendChild(padBottom);
-            rollerList.hasPadding = true;
+    function handleDelKey() {
+        if(currentInputStr.length > 0) {
+            currentInputStr = currentInputStr.substring(1);
+            updateKeypadUI();
         }
-
-        // Set to 0 (or closest)
-        // Value 0.
-        // 0 = min - index -> index = min.
-        // e.g. min -50. index = -50.
-        // translate = -50 * 40 = -2000.
-
-        const targetValue = 0;
-        const targetIndex = minRollerRange - targetValue; // e.g. -50 - 0 = -50.
-
-        currentTranslateY = targetIndex * itemHeight;
-        rollerList.style.transform = `translateY(${currentTranslateY}px)`;
-        currentRollerValue = targetValue;
-        updateRollerVisuals();
     }
 
-    const penaltyDelay = 10000; // 10 seconds penalty for wrong answer
+    function updateKeypadUI() {
+        const inputRow = document.getElementById('column-input-row');
+        if(!inputRow) return;
 
-    submitBtn.addEventListener('click', () => {
+        const boxes = inputRow.querySelectorAll('.input-box');
+        const expectedLen = String(steps[currentStep].result).length;
+        
+        boxes.forEach(b => {
+            b.textContent = '';
+            b.classList.remove('active');
+        });
+
+        const maxLen = boxes.length;
+        
+        for(let i=0; i<currentInputStr.length; i++) {
+            const char = currentInputStr[i]; 
+            const boxIdx = maxLen - currentInputStr.length + i;
+            if(boxes[boxIdx]) {
+                boxes[boxIdx].textContent = char;
+            }
+        }
+
+        if(currentInputStr.length < expectedLen) {
+            const activeIdx = maxLen - currentInputStr.length - 1;
+            if(boxes[activeIdx]) {
+                boxes[activeIdx].classList.add('active');
+            }
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+        }
+    }
+
+    const penaltyDelay = 10000;
+
+    function handleSubmit() {
         if (submitBtn.disabled) return;
 
         const step = steps[currentStep];
-        // The value we calculated visually is 'index + 1' from top 0, but since we added padding...
-        // Padding top is index 0. Real 0 is index 1.
-        // Translate 0: Pad(0), 0(1), 1(2).
-        // Highlight is over 0(1). 
-        // So index corresponds to value?
-        // Translate 0 -> index 0. Visual Middle is Item[1] (Value 0).
-        // So currentRollerValue derived from abs(translate/40) is 0. 
-        // And that aligns with Item[0+1] which is Value 0. Correct.
+        const expectedResultStr = String(step.result);
 
-        const inputVal = currentRollerValue;
-
-        if (inputVal === step.result) {
+        if (currentInputStr === expectedResultStr) {
             // Correct
-            const arc = document.getElementById(`arc-${currentStep}`);
-            arc.classList.remove('active');
-            arc.classList.add('completed');
-
             const duration = getStepDuration();
-            step.duration = duration; // Store for history
-            showSolvedResult(currentStep, inputVal, duration);
-
-            // Hide input immediately
+            step.duration = duration;
+            
             inputOverlay.classList.add('hidden');
+            
+            const boxes = document.querySelectorAll('.input-box');
+            boxes.forEach(b => {
+                if(b.textContent !== '') {
+                    b.style.color = 'var(--success-color)';
+                }
+            });
 
-            // Move to next
             setTimeout(() => {
+                document.getElementById('column-step-container').classList.add('hidden');
                 activateStep(currentStep + 1);
-            }, 500);
+            }, nextStepDelay);
         } else {
             // WRONG Answer - Penalty
-            // Shake feedback
             inputOverlay.animate([
-                { transform: 'translate(-50%, -100%) translateX(0)' },
-                { transform: 'translate(-50%, -100%) translateX(-10px)' },
-                { transform: 'translate(-50%, -100%) translateX(10px)' },
-                { transform: 'translate(-50%, -100%) translateX(0)' }
+                { transform: 'translateY(0) translateX(0)' },
+                { transform: 'translateY(0) translateX(-10px)' },
+                { transform: 'translateY(0) translateX(10px)' },
+                { transform: 'translateY(0) translateX(0)' }
             ], { duration: 300 });
 
-            // Lock interface
             submitBtn.disabled = true;
             submitBtn.classList.add('locked');
             const originalText = submitBtn.textContent;
@@ -622,13 +521,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('locked');
                 submitBtn.textContent = originalText;
+                currentInputStr = ""; // reset on wrong
+                updateKeypadUI();
             }, penaltyDelay);
 
-            // Penalty Logic
             step.wrongCount = (step.wrongCount || 0) + 1;
             applyPenalty();
         }
-    });
+    }
 
     function saveGameHistory() {
         const historyItem = {
@@ -665,21 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Game Saved:", historyItem);
     }
 
-    function showSolvedResult(index, value, timeSpent) {
-        const arc = document.getElementById(`arc-${index}`);
-        const totalLength = arc.getTotalLength();
-        const midPoint = arc.getPointAtLength(totalLength / 2);
-
-        const resultEl = document.createElement('div');
-        resultEl.className = 'solved-result';
-        // Display time above result
-        resultEl.innerHTML = `<div class="step-time-label">${timeSpent}</div>${value}`;
-
-        resultEl.style.left = `${midPoint.x}px`;
-        resultEl.style.top = `${midPoint.y - 15}px`;
-
-        document.querySelector('.game-container').appendChild(resultEl);
-    }
+    // Removed showSolvedResult as it was specific to arcs
 
     function createConfetti() {
         // Simple celebration visual
